@@ -7,8 +7,8 @@
 /////////////////////////////////////////////////////////
 double RP, Output;
 double Setpoint = 0;
-// P 50 I 0 D 20
-double Kp=80, Ki=0, Kd=10;
+
+double Kp=60, Ki=0, Kd=5;
 PID pid(&RP, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
 
 /////////////////////////////////////////////////////////
@@ -20,9 +20,8 @@ int speed = 127;//127
 int sensorValues[] = {0,0,0,0,0,0,0,0,0,0,0,0};
 uint8_t buttonValues[] = {0,0,0,0};
 
-
 int state = 1;
-int white_value = 0;
+int treashold = 0;
 int value = 0;
 int speedA;
 int speedB;
@@ -55,6 +54,7 @@ void setup() {
       ReadSensors();
     }
   }
+  treashold = calibrateSensors();
   delay(500);
   digitalWrite(INA1,LOW);
   digitalWrite(INA2,HIGH);
@@ -68,70 +68,25 @@ void setup() {
   servo.write(90);
 }
 
-void loop() {
-/*  ReadLine();
-  //Sensors 1-3
-  if(sensorLine[0]==0){
-    RP = -3;
-  }
-  else if(sensorLine[1]==0){
-    RP = -2;
-  }
-  else if(sensorLine[2]==0){
-    RP = -1;
-  }
-  //Sensors 4-6
-  else if(sensorLine[5]==1){
-    RP = 3;
-  }
-  else if(sensorLine[4]==1){
-    RP = 2;
-  }
-  else if(sensorLine[3]==1){
-    RP = 1;
-  }
-  else{
-    RP = 0;
-  }
-  
-  //Debug("Normal");
+void loop() {  
+  ReadSensors();
   pid.Compute();
+  digitizeSensors(treashold);
+  RP = calculateLine();
   speedA = speed-Output;
   speedB = speed+Output;
-  if(RP == 0){
-    speedA = speed;
-    speedB = speed;  
-  }
-  
-  //Debug("PID");
-  //A
-  digitalWrite(INA1,HIGH);
-  digitalWrite(INA2,LOW);
+  Serial.print(speedA);
+  Serial.print("  ");
+  Serial.print(speedB);
+  Serial.print("  ");
+  Serial.print(RP);
+  Serial.print("  ");
+  Serial.println(Output);
+  digitalWrite(INA1,LOW);
+  digitalWrite(INA2,HIGH);
+  digitalWrite(INB1,HIGH);
+  digitalWrite(INB2,LOW);
   analogWrite(ENA,speedA);
-  //B
-  digitalWrite(INB1,HIGH);
-  digitalWrite(INB2,LOW);
   analogWrite(ENB,speedB);
-  */
-  digitalWrite(INA1,LOW);
-  digitalWrite(INA2,HIGH);
-  analogWrite(ENA,255);
-  digitalWrite(INB1,LOW);
-  digitalWrite(INB2,HIGH);
-  analogWrite(ENB,255);
-  delay(1000);
-  digitalWrite(INA1,LOW);
-  digitalWrite(INA2,HIGH);
-  analogWrite(ENA,255);
-  digitalWrite(INB1,HIGH);
-  digitalWrite(INB2,LOW);
-  analogWrite(ENB,255);
-  delay(500);
-  ReadSensors();
-  for(int x=0;x<12;x++){
-  Serial.print(sensorValues[x]);
-  Serial.print(" ");}
-  Serial.println("");
-  //servo.write(0);
-  delay(30);
+
 }

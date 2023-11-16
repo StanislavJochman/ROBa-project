@@ -1,3 +1,5 @@
+#include "define.h"
+
 bool ButtonState(){
   bool value = digitalRead(button);
   return !value;
@@ -24,6 +26,96 @@ void ReadSensors(){
   sensorValues[10] = (Wire.read() | Wire.read() << 8);
   sensorValues[11] = (Wire.read() | Wire.read() << 8);
 }
+int sumWindow(int index,int size=3){
+  int result = 0;
+  for (int i=index;i<index+size;i++){
+    result += sensorValues[i];
+  }
+  return result;
+}
+int calculateLine(){
+  if(sumWindow(0,12) == 0){
+    return 0;
+  }
+  int range = 12-sensor_window_size;
+  int max = 0;
+  int max_index = -1;
+  for (int i=0;i<range;i++){
+    int value = sumWindow(i,sensor_window_size);
+    if (value >= max){
+      max = value;
+      max_index = i;
+    }
+  }
+  return int(map(max_index,0,range,-range/2,range/2));
+}
+
+void digitizeSensors(int treashold){
+  for (int i=0;i<12;i++){
+    if (sensorValues[i] < treashold){
+      sensorValues[i] = 0;
+    }
+    else{
+      sensorValues[i] = 1;
+    }
+  }
+}
+int calibrateSensors(){
+  ReadSensors();
+  int treashold = 0;
+  for (int i=0;i<6;i++){
+    if(sensorValues[i] > sensorValues[11-i]){
+        treashold += sensorValues[i] - sensorValues[11-i];
+    }
+    else{
+        treashold += sensorValues[11-i] - sensorValues[i];
+    }
+  }
+  treashold/=24;
+  return treashold;
+}
+void RunMotor(String motor,int speed){
+  if (motor == "A"){
+      if(speed > 0){
+        digitalWrite(INA1,LOW);
+        digitalWrite(INA2,HIGH);
+      }
+      else{
+        digitalWrite(INA1,HIGH);
+        digitalWrite(INA2,LOW);
+      }
+      analogWrite(ENA,abs(speed));
+    }
+    else if(motor == "B"){
+      if(speed > 0){
+        digitalWrite(INB1,LOW);
+        digitalWrite(INB2,HIGH);
+      }
+      else{
+        digitalWrite(INB1,HIGH);
+        digitalWrite(INB2,LOW);
+      }
+      analogWrite(ENB,abs(speed));
+    }
+    else if(motor == "AB"){
+      if(speed > 0){
+        digitalWrite(INA1,LOW);
+        digitalWrite(INA2,HIGH);
+        digitalWrite(INB1,LOW);
+        digitalWrite(INB2,HIGH);
+      }
+      else{
+        digitalWrite(INA1,HIGH);
+        digitalWrite(INA2,LOW);
+        digitalWrite(INB1,HIGH);
+        digitalWrite(INB2,LOW);
+        
+      }
+      analogWrite(ENA,abs(speed));
+      analogWrite(ENB,abs(speed));
+    }
+}
+
 /*
 void Calibrate_Line(int toleration){
   display.clearDisplay();
@@ -84,87 +176,5 @@ void Debug(String selector){
     Serial.println(" ");
   }
 }
-void RunMotor(String motor,int speed){
-  if(Driver != "L293"){
-    if (motor == "A"){
-      if(speed > 0){
-        digitalWrite(INA1,HIGH);
-        digitalWrite(INA2,LOW);
-      }
-      else{
-        digitalWrite(INA1,LOW);
-        digitalWrite(INA2,HIGH);
-      }
-      analogWrite(ENA,abs(speed));
-    }
-    else if(motor == "B"){
-      if(speed > 0){
-        digitalWrite(INB1,HIGH);
-        digitalWrite(INB2,LOW);
-      }
-      else{
-        digitalWrite(INB1,LOW);
-        digitalWrite(INB2,HIGH);
-      }
-      analogWrite(ENB,abs(speed));
-    }
-    else if(motor == "AB"){
-      if(speed > 0){
-        digitalWrite(INA1,HIGH);
-        digitalWrite(INA2,LOW);
-        digitalWrite(INB1,HIGH);
-        digitalWrite(INB2,LOW);
-      }
-      else{
-        digitalWrite(INA1,LOW);
-        digitalWrite(INA2,HIGH);
-        digitalWrite(INB1,LOW);
-        digitalWrite(INB2,HIGH);
-      }
-      analogWrite(ENA,abs(speed));
-      analogWrite(ENB,abs(speed));
-    }
-  }
-  else{
-    if (motor == "A"){
-      if(speed > 0){
-        digitalWrite(INA1,LOW);
-        digitalWrite(INA2,HIGH);
-      }
-      else{
-        digitalWrite(INA1,HIGH);
-        digitalWrite(INA2,LOW);
-      }
-      analogWrite(ENA,abs(speed));
-    }
-    else if(motor == "B"){
-      if(speed > 0){
-        digitalWrite(INB1,LOW);
-        digitalWrite(INB2,HIGH);
-      }
-      else{
-        digitalWrite(INB1,HIGH);
-        digitalWrite(INB2,LOW);
-      }
-      analogWrite(ENB,abs(speed));
-    }
-    else if(motor == "AB"){
-      if(speed > 0){
-        digitalWrite(INA1,LOW);
-        digitalWrite(INA2,HIGH);
-        digitalWrite(INB1,LOW);
-        digitalWrite(INB2,HIGH);
-      }
-      else{
-        digitalWrite(INA1,HIGH);
-        digitalWrite(INA2,LOW);
-        digitalWrite(INB1,HIGH);
-        digitalWrite(INB2,LOW);
-        
-      }
-      analogWrite(ENA,abs(speed));
-      analogWrite(ENB,abs(speed));
-    }
-  }
-}
+
 */

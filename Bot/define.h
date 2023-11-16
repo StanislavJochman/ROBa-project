@@ -19,3 +19,5 @@
 #define INB1 15 
 #define INA2 16
 #define INA1 14
+
+#define sensor_window_size 3

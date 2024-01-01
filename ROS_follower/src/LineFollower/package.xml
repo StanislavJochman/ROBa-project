@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package>
+  <name>LineFollower</name>
+  <version>0.0.1</version>
+  <description>Line following module using ROS</description>
+
+  <maintainer email="xjochm02@vutbr.cz">Stanislav Jochman</maintainer>
+  <license>MIT</license>
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>rospy</build_depend>
+  <build_depend>std_msgs</build_depend>
+
+  <run_depend>rospy</run_depend>
+  <run_depend>std_msgs</run_depend>
+</package>

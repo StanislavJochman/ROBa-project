@@ -1,0 +1,3 @@
+requirements.txt
+copytorobot.sh
+exclude.txt

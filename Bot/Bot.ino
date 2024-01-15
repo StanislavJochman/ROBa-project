@@ -1,24 +1,25 @@
+#if (ARDUINO >= 100)
+ #include <Arduino.h>
+#else
+ #include <WProgram.h>
+#endif
+
 #include <Wire.h>
 #include <MPU6050_tockn.h>
 #include <Wire.h>
 #include "define_nano.h"
 #include <PID_v1.h>
-#include <Servo.h>
-/////////////////////////////////////////////////////////
-double RP, Output;
-double Setpoint = 0;
 
-double Kp=60, Ki=0, Kd=5;
-PID pid(&RP, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+#include <ros.h>
+#include <std_msgs/UInt8.h>
+#include <std_msgs/String.h>
+/////////////////////////////////////////////////////////
 
-/////////////////////////////////////////////////////////
-Servo servo;
-/////////////////////////////////////////////////////////
 int speed = 127;//127
 /////////////////////////////////////////////////////////
 
 int sensorValues[] = {0,0,0,0,0,0,0,0,0,0,0,0};
-uint8_t buttonValues[] = {0,0,0,0};
+int buttonValues[] = {0,0,0,0};
 
 int state = 1;
 int treashold = 0;
@@ -26,26 +27,26 @@ int value = 0;
 int speedA;
 int speedB;
 /////////////////////////////////////////////////////////
-long pulseA = 0;
-long pulseB = 0;
-long gyro_angle;
-long gyro_angle_start;
+
+double RP, Output;
+double Setpoint = 0;
+
+ros::NodeHandle  nh;
+
+std_msgs::UInt8 int_msg;
+ros::Publisher chatter("chatter", &int_msg);
+
+
+void motor_cb(const std_msgs::UInt8& cmd_msg){
+  Output = cmd_msg.data-127;
+}
+
+ros::Subscriber<std_msgs::UInt8> sub("writer", motor_cb);
+
 /////////////////////////////////////////////////////////
 void setup() {
-  servo.attach(servo_pin);
-  Serial.begin(115200);
-  pid.SetMode(AUTOMATIC);
-  pid.SetOutputLimits(-speed,speed);
   Wire.begin();
-  pinMode(button,INPUT_PULLUP);
-  pinMode(INA1,OUTPUT);
-  pinMode(INA2,OUTPUT);
-  pinMode(INB1,OUTPUT);
-  pinMode(INB2,OUTPUT);
-  pinMode(ENA,OUTPUT);
-  pinMode(ENB,OUTPUT);
-/////////////////////////////////////////////////////////
-//  Calibrate_Line(30);
+  /////////////////////////////////////////////////////////
   while(true){
     if(buttonValues[0]==1){
       break;
@@ -65,28 +66,39 @@ void setup() {
   delay(450);
   analogWrite(ENA,0);
   analogWrite(ENB,0);
-  servo.write(90);
+////////////////////////////////////////////////////////
+  nh.initNode();
+  nh.advertise(chatter);
+  nh.subscribe(sub);
+  //pid.SetMode(AUTOMATIC);
+  //pid.SetOutputLimits(-speed,speed);
+  pinMode(button,INPUT_PULLUP);
+  pinMode(INA1,OUTPUT);
+  pinMode(INA2,OUTPUT);
+  pinMode(INB1,OUTPUT);
+  pinMode(INB2,OUTPUT);
+  pinMode(ENA,OUTPUT);
+  pinMode(ENB,OUTPUT);
 }
 
 void loop() {  
   ReadSensors();
-  pid.Compute();
+  //pid.Compute();
   digitizeSensors(treashold);
   RP = calculateLine();
   speedA = speed-Output;
   speedB = speed+Output;
-  Serial.print(speedA);
-  Serial.print("  ");
-  Serial.print(speedB);
-  Serial.print("  ");
-  Serial.print(RP);
-  Serial.print("  ");
-  Serial.println(Output);
+
   digitalWrite(INA1,LOW);
   digitalWrite(INA2,HIGH);
   digitalWrite(INB1,HIGH);
   digitalWrite(INB2,LOW);
   analogWrite(ENA,speedA);
   analogWrite(ENB,speedB);
+  int_msg.data = RP;
+  chatter.publish( &int_msg );
+
+  nh.spinOnce();
+  delay(1);
 
 }

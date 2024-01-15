@@ -1,0 +1,20 @@
+<!-- PID_robot.launch -->
+<launch>
+    <!-- Set the ROS master URI and hostname -->
+    <arg name="use_sim_time" default="true"/>
+    <arg name="PID_robot" default="PID_robot"/>
+  
+    <param name="use_sim_time" value="$(arg use_sim_time)"/>
+    <param name="PID_robot" value="$(arg PID_robot)"/>
+  
+    <!-- Launch ROSserial node -->
+    <node name="serial_node" pkg="rosserial_python" type="serial_node.py">
+      <param name="port" value="/dev/ttyUSB0"/>
+    </node>
+
+    <!-- Launch PID robot node -->
+    <node name="PID_robot" pkg="line_follower" type="PID.py" output="screen">
+      <param name="PID_robot" value="$(arg PID_robot)"/>
+    </node>
+
+  </launch>

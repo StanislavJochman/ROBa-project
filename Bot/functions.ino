@@ -47,7 +47,7 @@ int calculateLine(){
       max_index = i;
     }
   }
-  return int(map(max_index,0,range,-range/2,range/2));
+  return int(map(max_index,0,range,0,range));
 }
 
 void digitizeSensors(int treashold){
@@ -71,8 +71,7 @@ int calibrateSensors(){
         treashold += sensorValues[11-i] - sensorValues[i];
     }
   }
-  treashold/=24;
-  return treashold;
+  return 1023-treashold/6;
 }
 void RunMotor(String motor,int speed){
   if (motor == "A"){
@@ -115,66 +114,3 @@ void RunMotor(String motor,int speed){
       analogWrite(ENB,abs(speed));
     }
 }
-
-/*
-void Calibrate_Line(int toleration){
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(0,64);
-  display.print("white");
-  display.display();
-  while(true){
-    if(ButtonState()==1){
-      for(int x = 0;x<6;x++){
-        white_value = white_value + analogRead(sensors[x]);
-      }
-      white_value = (white_value/6)+toleration;
-      break;
-    }
-  }
-  DisplayPrint(String(white_value),10);
-  delay(500);
-}
-void ReadSensors(){
-  for (int x=0;x<6;x++){
-    sensorValues[x]=analogRead(sensors[x]);
-  }
-}
-
-void ReadLine(){
-  ReadSensors();
-  for (int x = 0;x<6;x++){
-    if(sensorValues[x]<white_value){
-      sensorLine[x] = 1;
-    }
-    else{
-      sensorLine[x] = 0;
-    }
-  } 
-}
-void Debug(String selector){
-  if(selector == "Raw"){
-    for(int x=0;x<5;x++){
-      Serial.print(sensorValues[x]);
-      Serial.print(" ");  
-    }
-    Serial.println(sensorValues[5]);
-  }
-  else if(selector == "PID"){
-    Serial.print("RP: ");
-    Serial.print(RP);
-    Serial.print("   A: ");
-    Serial.print(speedA);
-    Serial.print("   B: ");
-    Serial.println(speedB);
-  }
-  else{
-    for (int x=0;x<6;x++){
-//      Serial.print(sensorLine[x]);
-      Serial.print(" ");
-    }
-    Serial.println(" ");
-  }
-}
-
-*/

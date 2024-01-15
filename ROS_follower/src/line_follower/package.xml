@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>LineFollower</name>
+  <name>line_follower</name>
   <version>0.0.1</version>
   <description>Line following module using ROS</description>
 

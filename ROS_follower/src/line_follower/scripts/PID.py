@@ -28,39 +28,42 @@ class PID:
         self.last_error = error
 
         self.speed = self.kp * self.p + self.ki * self.i + self.kd * self.d
-        self.speed = max(min(self.speed, 127), -127)  # Clamp speed to the range of -127 to 127
-        print(self.speed)
+        self.speed = max(min(self.speed, 120), -120)  # Clamp speed to the range of -127 to 127
+        self.speed = int(self.speed + 120)
 
-def callback(data, pid_controller):
-    error = int(data.data)-4
+        print("Error: {} speed: {}".format(error, self.speed))
+
+def callback(data, args):
+    pid_controller, pub = args
+    error = int(data.data) - 4
     print(error)
     pid_controller.update(error)
+    pub.publish(pid_controller.speed)
 
 def writer(pid_controller):
     rospy.init_node('writer', anonymous=True)
     pub = rospy.Publisher('writer', UInt8, queue_size=1)
 
-    rate = rospy.Rate(30)  # 30 Hz
-
     while not rospy.is_shutdown():
-        pub.publish(pid_controller.speed+127)
-        rate.sleep()
+        # Move the publish call to the callback function
+        pass  # The publish call is now in the callback function
 
-def listener(pid_controller):
-    rospy.init_node('listener', anonymous=True)
-    rospy.Subscriber('chatter', UInt8, callback, pid_controller)
+def controller(pid_controller):
+    rospy.init_node('pid_controller', anonymous=True)
+    pub = rospy.Publisher('writer', UInt8, queue_size=1)
+    rospy.Subscriber('chatter', UInt8, callback, (pid_controller, pub))
 
     # Wait for the first message on the '/chatter' topic
     rospy.wait_for_message('chatter', UInt8)
-
     rospy.spin()
 
 if __name__ == '__main__':
     print("Node started")
     # Initialize the PID controller PID(kp, ki, kd, max_error)
-    PID_controller = PID(10, 1, 1, 3)
+    PID_controller = PID(30, 0, 15, 6)
+
     try:
-        listener(PID_controller)
+        print("Starting listener and writer")
+        controller(PID_controller)
     except rospy.ROSInterruptException:
-        pass
-    writer(PID_controller)
+        print("Node stopped")

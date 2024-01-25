@@ -1,4 +1,6 @@
 #/bin/bash
+
+sudo nvpmodel -m 1
 roslaunch line_follower PID_robot.launch
 ./setup_ros_environment.sh
 roscore &

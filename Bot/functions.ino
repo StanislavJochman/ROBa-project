@@ -71,7 +71,7 @@ int calibrateSensors(){
         treashold += sensorValues[11-i] - sensorValues[i];
     }
   }
-  return 1023-treashold/6;
+  return 1023-treashold/2;
 }
 void RunMotor(String motor,int speed){
   if (motor == "A"){

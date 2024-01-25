@@ -15,7 +15,7 @@
 #include <std_msgs/String.h>
 /////////////////////////////////////////////////////////
 
-int speed = 127;//127
+int speed = 120;//127
 /////////////////////////////////////////////////////////
 
 int sensorValues[] = {0,0,0,0,0,0,0,0,0,0,0,0};
@@ -28,8 +28,8 @@ int speedA;
 int speedB;
 /////////////////////////////////////////////////////////
 
-double RP, Output;
-double Setpoint = 0;
+int RP = 0;
+int Output = 0;
 
 ros::NodeHandle  nh;
 
@@ -38,7 +38,7 @@ ros::Publisher chatter("chatter", &int_msg);
 
 
 void motor_cb(const std_msgs::UInt8& cmd_msg){
-  Output = cmd_msg.data-127;
+  Output = cmd_msg.data-120;
 }
 
 ros::Subscriber<std_msgs::UInt8> sub("writer", motor_cb);
@@ -47,7 +47,7 @@ ros::Subscriber<std_msgs::UInt8> sub("writer", motor_cb);
 void setup() {
   Wire.begin();
   /////////////////////////////////////////////////////////
-  while(true){
+  /*while(true){
     if(buttonValues[0]==1){
       break;
     }
@@ -65,13 +65,12 @@ void setup() {
   analogWrite(ENB,35);
   delay(450);
   analogWrite(ENA,0);
-  analogWrite(ENB,0);
+  analogWrite(ENB,0);*/
+  treashold = 995;
 ////////////////////////////////////////////////////////
   nh.initNode();
   nh.advertise(chatter);
   nh.subscribe(sub);
-  //pid.SetMode(AUTOMATIC);
-  //pid.SetOutputLimits(-speed,speed);
   pinMode(button,INPUT_PULLUP);
   pinMode(INA1,OUTPUT);
   pinMode(INA2,OUTPUT);
@@ -83,11 +82,10 @@ void setup() {
 
 void loop() {  
   ReadSensors();
-  //pid.Compute();
   digitizeSensors(treashold);
   RP = calculateLine();
-  speedA = speed-Output;
-  speedB = speed+Output;
+  speedA = speed+Output;
+  speedB = speed-Output;
 
   digitalWrite(INA1,LOW);
   digitalWrite(INA2,HIGH);
